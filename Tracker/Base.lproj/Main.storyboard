@@ -42,12 +42,24 @@
         <!--Trackers View Controller-->
         <scene sceneID="CEe-po-pR1">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Z2Y-PC-xUa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <viewController id="wLK-qO-gWx" customClass="TrackersViewController" customModule="Tracker" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="zC9-w0-oJP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="star" translatesAutoresizingMaskIntoConstraints="NO" id="OHj-wB-wgp">
+                                <rect key="frame" x="156.66666666666666" y="386" width="80" height="80"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="80" id="HUN-F9-Lco"/>
+                                    <constraint firstAttribute="width" constant="80" id="oR3-fY-KGU"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Что будем отслеживать?" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zL6-xI-Hxz">
+                                <rect key="frame" x="121.66666666666669" y="473" width="150" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Itu-eX-F8B">
                                 <rect key="frame" x="6" y="59" width="42" height="42"/>
                                 <constraints>
@@ -77,19 +89,6 @@
                                     <outlet property="delegate" destination="wLK-qO-gWx" id="joE-e0-0Gj"/>
                                 </connections>
                             </searchBar>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="star" translatesAutoresizingMaskIntoConstraints="NO" id="OHj-wB-wgp">
-                                <rect key="frame" x="156.66666666666666" y="386" width="80" height="80"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="80" id="HUN-F9-Lco"/>
-                                    <constraint firstAttribute="width" constant="80" id="oR3-fY-KGU"/>
-                                </constraints>
-                            </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Что будем отслеживать?" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zL6-xI-Hxz">
-                                <rect key="frame" x="121.66666666666669" y="473" width="150" height="22"/>
-                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="12"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Rr0-um-c1H"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -112,6 +111,7 @@
                     </view>
                     <tabBarItem key="tabBarItem" title="" image="record.circle" id="qHN-YD-2Nh"/>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Z2Y-PC-xUa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="716.79389312977094" y="404.92957746478874"/>
         </scene>
