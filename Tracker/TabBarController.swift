@@ -6,10 +6,10 @@ final class TabBarController: UITabBarController {
         super.viewDidLoad()
         
         let trackersVC = TrackersViewController()
-        trackersVC.tabBarItem = UITabBarItem(title: nil, image: UIImage(systemName: "record.circle"), tag: 0)
+        trackersVC.tabBarItem = UITabBarItem(title: "Трекеры", image: UIImage(systemName: "record.circle"), tag: 0)
         
         let secondVC = StatisticsViewController()
-        secondVC.tabBarItem = UITabBarItem(title: nil, image: UIImage(systemName: "hare.fill"), tag: 1)
+        secondVC.tabBarItem = UITabBarItem(title: "Статистика", image: UIImage(systemName: "hare.fill"), tag: 1)
         
         viewControllers = [trackersVC, secondVC]
     }
