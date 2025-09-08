@@ -12,5 +12,21 @@ final class TabBarController: UITabBarController {
         secondVC.tabBarItem = UITabBarItem(title: "Статистика", image: UIImage(systemName: "hare.fill"), tag: 1)
         
         viewControllers = [trackersVC, secondVC]
+        
+        setupTabBarAppearance()
+    }
+    
+    private func setupTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        
+        appearance.backgroundColor = UIColor(named: "YP_White")
+        
+        appearance.shadowColor = UIColor.separator
+        
+        tabBar.standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            tabBar.scrollEdgeAppearance = appearance
+        }
     }
 }

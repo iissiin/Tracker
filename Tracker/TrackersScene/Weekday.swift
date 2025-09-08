@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 enum Weekday: Int, CaseIterable, Codable, Hashable {
-    case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
+    case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
 
     static func from(date: Date, calendar: Calendar = .current) -> Weekday {
         Weekday(rawValue: calendar.component(.weekday, from: date))!

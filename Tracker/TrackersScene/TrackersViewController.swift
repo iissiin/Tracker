@@ -8,12 +8,24 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private var visibleCategories: [TrackerCategory] {
         let weekday = Weekday.from(date: currentDate)
-        return categories.map { category in
-            let filteredTrackers = category.trackers.filter { $0.schedule.contains(weekday) }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
+        let calendar = Calendar.current
+        
+        let isFutureDate = currentDate > Date()
+        
+        return categories.compactMap { category in
+            let filteredTrackers = category.trackers.filter { tracker in
+                if isFutureDate {
+                    return false
+                }
+                return tracker.schedule.contains(weekday)
+            }
+            
+            return filteredTrackers.isEmpty ? nil : TrackerCategory(
+                title: category.title,
+                trackers: filteredTrackers
+            )
+        }
     }
-    
     // MARK: - UI
     private let plusButton: UIButton = {
         let button = UIButton(type: .system)
@@ -95,13 +107,6 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         setupConstraints()
         plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         updatePlaceholderVisibility()
-        
-        if let tabBar = tabBarController?.tabBar {
-            let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
-            tabBar.standardAppearance = appearance
-            tabBar.scrollEdgeAppearance = appearance
-        }
     }
 
     // MARK: - Действия
@@ -121,26 +126,36 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private func addTrackerToCategory(tracker: Tracker, categoryTitle: String) {
         if let index = categories.firstIndex(where: { $0.title == categoryTitle }) {
-            // Категория существует - добавляем трекер
             var updatedTrackers = categories[index].trackers
             updatedTrackers.append(tracker)
             categories[index] = TrackerCategory(title: categoryTitle, trackers: updatedTrackers)
         } else {
-            // Категория не существует - создаем новую
             let newCategory = TrackerCategory(title: categoryTitle, trackers: [tracker])
             categories.append(newCategory)
         }
+        
+        updatePlaceholderVisibility()
     }
     
     @objc private func dateChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
+        
+        let calendarWeekday = Calendar.current.component(.weekday, from: currentDate)
+        let ourWeekday = Weekday.from(date: currentDate)
+        
+        print("Calendar говорит: \(calendarWeekday)")
+        print("Наш enum говорит: \(ourWeekday) (\(ourWeekday.rawValue))")
+        print("Это один и тот же день? \(calendarWeekday == ourWeekday.rawValue)")
+        
         collectionView.reloadData()
+        updatePlaceholderVisibility()
     }
 
     private func updatePlaceholderVisibility() {
-        let isEmpty = categories.allSatisfy { $0.trackers.isEmpty }
+        let isEmpty = visibleCategories.isEmpty
         starImageView.isHidden = !isEmpty
         descriptionLabel.isHidden = !isEmpty
+        collectionView.isHidden = isEmpty
     }
     
     private func handleTrackerCompletion(trackerId: UUID, shouldComplete: Bool, indexPath: IndexPath) {
