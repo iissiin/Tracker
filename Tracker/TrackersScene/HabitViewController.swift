@@ -3,7 +3,7 @@ import UIKit
 final class HabitViewController: UIViewController {
     
     // MARK: - Properties
-    var onSave: ((TrackersViewController.Tracker) -> Void)?
+    var onSave: ((Tracker) -> Void)?
     private var selectedDays: [Weekday] = []
     
     // MARK: - UI Elements
@@ -130,7 +130,7 @@ final class HabitViewController: UIViewController {
     @objc private func createButtonTapped() {
         guard let title = titleTextField.text, !title.isEmpty else { return }
 
-        let newTracker = TrackersViewController.Tracker(
+        let newTracker = Tracker(
             id: UUID(),
             name: title,
             color: UIColor(named: "selection_5") ?? .systemGreen,

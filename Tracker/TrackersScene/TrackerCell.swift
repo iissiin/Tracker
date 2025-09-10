@@ -126,7 +126,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Config
     func configure(
-        with tracker: TrackersViewController.Tracker,
+        with tracker: Tracker,
         isCompletedToday: Bool = false,
         completionCount: Int = 0,
         completionHandler: ((UUID, Bool) -> Void)? = nil
@@ -157,8 +157,8 @@ final class TrackerCell: UICollectionViewCell {
 
     @objc private func plusButtonTapped() {
         guard let trackerId = trackerId else { return }
-        completionHandler?(trackerId, !isCompletedToday)
         isCompletedToday.toggle()
         updateButtonAppearance()
+        completionHandler?(trackerId, isCompletedToday)
     }
 }

@@ -26,9 +26,11 @@ final class ScheduleViewController: UIViewController {
         tv.dataSource = self
         tv.delegate = self
         tv.backgroundColor = .clear
+        tv.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 1))
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
+
 
     private lazy var doneButton: UIButton = {
         let btn = UIButton(type: .system)
