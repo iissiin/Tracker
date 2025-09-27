@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  Tracker
-//
-//  Created by Дария Исина on 16.08.2025.
-//
-
 import UIKit
 import CoreData
 
@@ -33,11 +26,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     lazy var persistentContainer: NSPersistentContainer = {
-            let container = NSPersistentContainer(name: "Tracker")
-            container.loadPersistentStores { (storeDescription, error) in
+            let container = NSPersistentContainer(name: "TrackerModel")
+            container.loadPersistentStores { storeDescription, error in
                 if let error = error as NSError? {
                     fatalError("Unresolved error \(error), \(error.userInfo)")
                 }
+                print("Persistent store loaded: \(storeDescription)")
             }
             return container
         }()

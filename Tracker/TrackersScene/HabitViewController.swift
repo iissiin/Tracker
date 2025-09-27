@@ -3,7 +3,7 @@ import UIKit
 final class HabitViewController: UIViewController {
     
     // MARK: - Public callback
-    var onSave: ((Tracker) -> Void)?
+    var onSave: ((PersistentTracker) -> Void)?
     
     // MARK: - State
     private var selectedDays: [Weekday] = []
@@ -256,8 +256,14 @@ final class HabitViewController: UIViewController {
               let emoji = selectedEmoji,
               let colorName = selectedColorName else { return }
         
-        let color = UIColor(named: colorName) ?? .systemGreen
-        let newTracker = Tracker(id: UUID(), name: title, color: color, emoji: emoji, schedule: selectedDays)
+        let newTracker = PersistentTracker(
+            id: UUID(),
+            name: title,
+            colorName: colorName,
+            emoji: emoji,
+            schedule: selectedDays.map { $0.rawValue },
+            categoryTitle: "Мои трекеры"
+        )
         onSave?(newTracker)
         dismiss(animated: true)
     }
@@ -390,7 +396,7 @@ final class EmojiCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(label)
-        contentView.layer.cornerRadius = 16 // Закругление углов 16px
+        contentView.layer.cornerRadius = 16
         contentView.layer.masksToBounds = true
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -402,8 +408,8 @@ final class EmojiCell: UICollectionViewCell {
     
     func configure(with emoji: String, selected: Bool) {
         label.text = emoji
-        contentView.backgroundColor = selected ? UIColor.systemGray4 : UIColor.clear // Серый фон для выбранной ячейки, прозрачный для невыбранной
-        contentView.layer.borderWidth = 0 // Убираем контур
+        contentView.backgroundColor = selected ? UIColor.systemGray4 : UIColor.clear
+        contentView.layer.borderWidth = 0
     }
 }
 

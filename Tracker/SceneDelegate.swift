@@ -1,10 +1,3 @@
-//
-//  SceneDelegate.swift
-//  Tracker
-//
-//  Created by Дария Исина on 16.08.2025.
-//
-
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -13,11 +6,35 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-            guard let windowScene = (scene as? UIWindowScene) else { return }
-            window = UIWindow(windowScene: windowScene)
-            window?.rootViewController = TabBarController()
-            window?.makeKeyAndVisible()
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+        window = UIWindow(windowScene: windowScene)
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("Не удалось получить AppDelegate")
         }
+        let context = appDelegate.persistentContainer.viewContext
+        
+        let trackerStore = TrackerStore(context: context)
+        let trackerCategoryStore = TrackerCategoryStore(context: context)
+        let trackerRecordStore = TrackerRecordStore(context: context)
+        
+        let trackersVC = TrackersViewController(
+            trackerStore: trackerStore,
+            trackerCategoryStore: trackerCategoryStore,
+            trackerRecordStore: trackerRecordStore
+        )
+        
+        let statisticsVC = StatisticsViewController()
+        
+        let tabBarController = TabBarController(
+            trackersVC: trackersVC,
+            statisticsVC: statisticsVC
+        )
+        
+        window?.rootViewController = tabBarController
+        window?.makeKeyAndVisible()
+    }
+
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
