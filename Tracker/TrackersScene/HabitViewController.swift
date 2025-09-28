@@ -333,16 +333,25 @@ extension HabitViewController: UICollectionViewDataSource, UICollectionViewDeleg
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == emojiCollectionView {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.reuseId, for: indexPath) as! EmojiCell
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: EmojiCell.reuseId,
+                for: indexPath
+            ) as? EmojiCell else {
+                assertionFailure("Could not dequeue EmojiCell")
+                return UICollectionViewCell()
+            }
             let emoji = emojis[indexPath.item]
             cell.configure(with: emoji, selected: emoji == selectedEmoji)
             return cell
+            
         } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCell.reuseId, for: indexPath) as! ColorCell
-            let colorName = colors[indexPath.item]
-            let color = UIColor(named: colorName) ?? UIColor.systemGray
-            let isSelected = colorName == selectedColorName
-            cell.configure(color: color, selected: isSelected)
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ColorCell.reuseId,
+                for: indexPath
+            ) as? ColorCell else {
+                assertionFailure("Could not dequeue ColorCell")
+                return UICollectionViewCell()
+            }
             return cell
         }
     }
@@ -361,13 +370,7 @@ extension HabitViewController: UICollectionViewDataSource, UICollectionViewDeleg
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if collectionView == emojiCollectionView {
-            // Фиксированный размер 52x52 для эмодзи
-            return CGSize(width: 52, height: 52)
-        } else {
-            // Фиксированный размер 52x52 для цветов
-            return CGSize(width: 52, height: 52)
-        }
+        return CGSize(width: 52, height: 52)
     }
 }
 

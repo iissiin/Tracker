@@ -271,16 +271,21 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         viewForSupplementaryElementOfKind kind: String,
         at indexPath: IndexPath
     ) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader {
-            let header = collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind,
-                withReuseIdentifier: "header",
-                for: indexPath
-            ) as! SectionHeader
-            header.titleLabel.text = visibleCategories[indexPath.section].title
-            return header
+        guard kind == UICollectionView.elementKindSectionHeader else {
+            return UICollectionReusableView()
         }
-        return UICollectionReusableView()
+        
+        guard let header = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: "header",
+            for: indexPath
+        ) as? SectionHeader else {
+            assertionFailure("Error")
+            return UICollectionReusableView()
+        }
+        
+        header.titleLabel.text = visibleCategories[indexPath.section].title
+        return header
     }
     
     private func makeTrackerViewModel(for tracker: Tracker) -> (tracker: Tracker, isCompletedToday: Bool, completionCount: Int) {
