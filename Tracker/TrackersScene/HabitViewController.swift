@@ -352,6 +352,11 @@ extension HabitViewController: UICollectionViewDataSource, UICollectionViewDeleg
                 assertionFailure("Could not dequeue ColorCell")
                 return UICollectionViewCell()
             }
+            // ВОТ ИСПРАВЛЕНИЕ - передаем цвет в ячейку
+            let colorName = colors[indexPath.item]
+            let color = UIColor(named: colorName) ?? .systemBlue
+            let isSelected = colorName == selectedColorName
+            cell.configure(color: color, selected: isSelected)
             return cell
         }
     }
