@@ -148,7 +148,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     // MARK: - Действия
     @objc private func plusButtonTapped() {
-        let habitVC = HabitViewController()
+        let habitVC = HabitViewController(trackerCategoryStore: trackerCategoryStore)
         habitVC.onSave = { [weak self] persistentTracker in
             guard let self else { return }
             do {
@@ -160,7 +160,6 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
                 print("Ошибка добавления трекера: \(error)")
             }
         }
-        
         let nav = UINavigationController(rootViewController: habitVC)
         present(nav, animated: true)
     }

@@ -8,8 +8,16 @@ struct PersistentCategory {
 
 protocol TrackerCategoryStoring {
     func addCategory(_ category: PersistentCategory) throws
+    func addNewCategory(title: String) throws
     func fetchCategories() throws -> [PersistentCategory]
     func deleteCategory(title: String) throws
+    func updateCategory(oldTitle: String, newTitle: String) throws
+}
+
+enum TrackerCategoryStoreError: Error {
+    case fetchError
+    case decodingError
+    case duplicateTitle
 }
 
 final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
@@ -24,28 +32,17 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
-        setupDefaultCategory()
     }
 
     // MARK: - Setup
     private func setupFetchedResultsController() {
-        guard fetchedResultsController == nil else {
-            return
-        }
-        
-        guard context.persistentStoreCoordinator != nil else {
-            return
-        }
-        
-        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else {
-            return
-        }
+        guard fetchedResultsController == nil else { return }
+        guard context.persistentStoreCoordinator != nil else { return }
+        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else { return }
         
         let fetchRequest = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
         fetchRequest.entity = entity
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerCategoryCoreData.title, ascending: true)
-        ]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerCategoryCoreData.title, ascending: true)]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -59,18 +56,23 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
     // MARK: - Public
     var categories: [PersistentCategory] {
         setupFetchedResultsController()
-        guard let fetchedResultsController = fetchedResultsController else {
-            return []
-        }
+        guard let fetchedResultsController = fetchedResultsController else { return [] }
         do {
             try fetchedResultsController.performFetch()
             return fetchedResultsController.fetchedObjects?.compactMap { self.category(from: $0) } ?? []
         } catch {
+            print("Ошибка получения категорий: \(error)")
             return []
         }
     }
 
     func addCategory(_ category: PersistentCategory) throws {
+        let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
+        request.predicate = NSPredicate(format: "title == %@", category.title)
+        if !(try context.fetch(request).isEmpty) {
+            throw TrackerCategoryStoreError.duplicateTitle
+        }
+        
         guard let categoryEntity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else {
             throw TrackerCategoryStoreError.fetchError
         }
@@ -92,12 +94,35 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
 
         try context.save()
     }
+    
+    func addNewCategory(title: String) throws {
+        print("Попытка добавить категорию: \(title)")
+        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            print("Ошибка: Пустое название")
+            throw TrackerCategoryStoreError.decodingError
+        }
+        
+        let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
+        request.predicate = NSPredicate(format: "title == %@", title)
+        if !(try context.fetch(request).isEmpty) {
+            print("Ошибка: Категория \(title) уже существует")
+            throw TrackerCategoryStoreError.duplicateTitle
+        }
+        
+        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else {
+            print("Ошибка: Не удалось создать сущность")
+            throw TrackerCategoryStoreError.fetchError
+        }
+        
+        let categoryCoreData = TrackerCategoryCoreData(entity: entity, insertInto: context)
+        categoryCoreData.title = title
+        try context.save()
+        print("Категория \(title) сохранена")
+    }
 
     func fetchCategories() throws -> [PersistentCategory] {
         setupFetchedResultsController()
-        guard let fetchedResultsController = fetchedResultsController else {
-            return []
-        }
+        guard let fetchedResultsController = fetchedResultsController else { return [] }
         try fetchedResultsController.performFetch()
         return fetchedResultsController.fetchedObjects?.compactMap { self.category(from: $0) } ?? []
     }
@@ -110,33 +135,33 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
             try context.save()
         }
     }
+    
+    func updateCategory(oldTitle: String, newTitle: String) throws {
+        // Проверяем уникальность нового title
+        let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
+        request.predicate = NSPredicate(format: "title == %@", newTitle)
+        if !(try context.fetch(request).isEmpty) {
+            throw TrackerCategoryStoreError.duplicateTitle
+        }
+        
+        request.predicate = NSPredicate(format: "title == %@", oldTitle)
+        guard let category = try context.fetch(request).first else {
+            throw TrackerCategoryStoreError.fetchError
+        }
+        category.title = newTitle
+        try context.save()
+    }
 
     // MARK: - Private
-    private func setupDefaultCategory() {
-        do {
-            let categories = try fetchCategories()
-            if categories.isEmpty {
-                let defaultCategory = PersistentCategory(title: "Default", trackers: [])
-                try addCategory(defaultCategory)
-            }
-        } catch {}
-    }
-    
     private func category(from coreData: TrackerCategoryCoreData) -> PersistentCategory? {
-        guard let title = coreData.title else {
-            return nil
-        }
-
+        guard let title = coreData.title else { return nil }
         let trackers: [PersistentTracker] = (coreData.trackers as? Set<TrackerCoreData>)?.compactMap { coreData in
             guard
                 let id = coreData.id,
                 let name = coreData.name,
                 let colorName = coreData.colorName,
                 let emoji = coreData.emoji
-            else {
-                return nil
-            }
-
+            else { return nil }
             let schedule: [Int]
             if let arr = coreData.schedule as? [Int] {
                 schedule = arr
@@ -145,7 +170,6 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
             } else {
                 schedule = []
             }
-
             return PersistentTracker(
                 id: id,
                 name: name,
@@ -154,9 +178,7 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoring {
                 schedule: schedule,
                 categoryTitle: title
             )
-        }
-        .sorted { $0.name < $1.name } ?? []
-
+        }.sorted { $0.name < $1.name } ?? []
         return PersistentCategory(title: title, trackers: trackers)
     }
 }
