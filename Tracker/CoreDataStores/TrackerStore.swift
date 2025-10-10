@@ -14,6 +14,8 @@ protocol TrackerStoring {
     func addNewTracker(_ tracker: PersistentTracker) throws
     func fetchTrackers() throws -> [PersistentTracker]
     func deleteTracker(_ id: UUID) throws
+    
+    func updateTracker(_ tracker: PersistentTracker) throws
 }
 
 final class TrackerStore: NSObject, TrackerStoring {
@@ -92,6 +94,28 @@ final class TrackerStore: NSObject, TrackerStoring {
             context.delete(object)
             try context.save()
         }
+    }
+    
+    func updateTracker(_ tracker: PersistentTracker) throws {
+        guard !tracker.categoryTitle.isEmpty else {
+            throw TrackerStoreError.decodingError
+        }
+        
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        guard let trackerCoreData = try context.fetch(request).first else {
+            throw TrackerStoreError.fetchError
+        }
+        
+        guard let categoryObject = try fetchCategory(by: tracker.categoryTitle) else {
+            throw TrackerStoreError.decodingError
+        }
+        
+        updateExistingTracker(trackerCoreData, with: tracker)
+        trackerCoreData.category = categoryObject
+        
+        try context.save()
     }
 
     // MARK: - Private

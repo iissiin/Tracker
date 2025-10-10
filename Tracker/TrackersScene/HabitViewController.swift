@@ -2,8 +2,10 @@ import UIKit
 
 final class HabitViewController: UIViewController {
     var onSave: ((PersistentTracker) -> Void)?
+    var onUpdate: ((PersistentTracker) -> Void)?
     
     private let trackerCategoryStore: TrackerCategoryStoring
+    private var editingTracker: PersistentTracker?
     
     private var selectedDays: [Weekday] = []
     private var selectedEmoji: String?
@@ -148,8 +150,9 @@ final class HabitViewController: UIViewController {
         return b
     }()
     
-    init(trackerCategoryStore: TrackerCategoryStoring) {
+    init(trackerCategoryStore: TrackerCategoryStoring, editingTracker: PersistentTracker? = nil) {
         self.trackerCategoryStore = trackerCategoryStore
+        self.editingTracker = editingTracker
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -161,6 +164,15 @@ final class HabitViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupNavigationBar()
+        if let tracker = editingTracker {
+            titleTextField.text = tracker.name
+            selectedEmoji = tracker.emoji
+            selectedColorName = tracker.colorName
+            selectedCategoryTitle = tracker.categoryTitle
+            selectedDays = tracker.schedule.compactMap { Weekday(rawValue: $0) }
+            createButton.setTitle("Сохранить", for: .normal)
+            updateCreateButtonState()
+        }
         emojiCollectionView.reloadData()
         colorCollectionView.reloadData()
         updateCreateButtonState()
@@ -245,7 +257,7 @@ final class HabitViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        navigationItem.title = "Новая привычка"
+        navigationItem.title = editingTracker == nil ? "Новая привычка" : "Редактировать привычку"
     }
     
     @objc private func cancelButtonTapped() {
@@ -258,15 +270,20 @@ final class HabitViewController: UIViewController {
               let colorName = selectedColorName,
               let categoryTitle = selectedCategoryTitle else { return }
         
-        let newTracker = PersistentTracker(
-            id: UUID(),
+        let tracker = PersistentTracker(
+            id: editingTracker?.id ?? UUID(),
             name: title,
             colorName: colorName,
             emoji: emoji,
             schedule: selectedDays.map { $0.rawValue },
             categoryTitle: categoryTitle
         )
-        onSave?(newTracker)
+        
+        if editingTracker != nil {
+            onUpdate?(tracker)
+        } else {
+            onSave?(tracker)
+        }
         dismiss(animated: true)
     }
     

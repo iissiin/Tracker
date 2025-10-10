@@ -2,11 +2,12 @@ import UIKit
 
 final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
-    // MARK: - Хранение данных (через абстракции)
+    // MARK: - Хранение данных
     private let trackerStore: TrackerStoring
     private let trackerCategoryStore: TrackerCategoryStoring
     private let trackerRecordStore: TrackerRecordStoring
     private var currentDate: Date = Date()
+    private var persistentTrackers: [PersistentTracker] = []
     
     private var visibleCategories: [TrackerCategory] {
         let weekday = Weekday.from(date: currentDate)
@@ -20,11 +21,15 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
             return []
         }
         
+        persistentTrackers.removeAll()
+        
         return persistentCategories.compactMap { persistentCategory -> TrackerCategory? in
             let filteredTrackers = persistentCategory.trackers.filter { tracker in
                 if isFutureDate { return false }
                 return tracker.schedule.contains(weekday.rawValue)
             }
+            
+            persistentTrackers.append(contentsOf: filteredTrackers)
             
             let trackerObjects: [Tracker] = filteredTrackers.compactMap { persistentTracker in
                 let color = UIColor(named: persistentTracker.colorName) ?? .systemGray
@@ -193,6 +198,32 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         }
     }
     
+    private func showDeleteConfirmation(for id: UUID, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Уверены, что хотите удалить трекер?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            do {
+                try self?.trackerStore.deleteTracker(id)
+                self?.collectionView.reloadData()
+                self?.updatePlaceholderVisibility()
+            } catch {
+                print("Ошибка удаления трекера: \(error)")
+                let errorAlert = UIAlertController(
+                    title: "Ошибка",
+                    message: "Не удалось удалить трекер",
+                    preferredStyle: .alert
+                )
+                errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                self?.present(errorAlert, animated: true)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        present(alert, animated: true)
+    }
+    
     // MARK: - Constraints
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -321,6 +352,66 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         referenceSizeForHeaderInSection section: Int
     ) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 40)
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
+        
+        return UIContextMenuConfiguration(
+            identifier: indexPath as NSCopying,
+            previewProvider: nil  // Используем делегат для кастомного превью
+        ) { _ in
+            UIMenu(title: "", children: [
+                UIAction(title: "Редактировать") { [weak self] _ in
+                    guard let self else { return }
+                    
+                    if let persistentTracker = self.persistentTrackers.first(where: { $0.id == tracker.id }) {
+                        let habitVC = HabitViewController(
+                            trackerCategoryStore: self.trackerCategoryStore,
+                            editingTracker: persistentTracker
+                        )
+                        habitVC.onUpdate = { [weak self] updatedTracker in
+                            guard let self else { return }
+                            do {
+                                try self.trackerStore.updateTracker(updatedTracker)
+                                self.collectionView.reloadData()
+                                self.updatePlaceholderVisibility()
+                            } catch {
+                                print("Ошибка обновления трекера: \(error)")
+                            }
+                        }
+                        let nav = UINavigationController(rootViewController: habitVC)
+                        self.present(nav, animated: true)
+                    }
+                },
+                UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
+                    self?.showDeleteConfirmation(for: tracker.id, at: indexPath)
+                }
+            ])
+        }
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+    ) -> UITargetedPreview? {
+        guard let indexPath = configuration.identifier as? IndexPath,
+              let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell else {
+            return nil
+        }
+        
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear  // Прозрачный фон
+        parameters.visiblePath = UIBezierPath(
+            roundedRect: cell.cardView.bounds,
+            cornerRadius: cell.cardView.layer.cornerRadius  // Закруглённые углы
+        )
+        
+        return UITargetedPreview(view: cell.cardView, parameters: parameters)
     }
 }
 

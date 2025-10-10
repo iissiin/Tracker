@@ -5,7 +5,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - UI
     
-    private let cardView: UIView = {
+    let cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
         view.translatesAutoresizingMaskIntoConstraints = false
