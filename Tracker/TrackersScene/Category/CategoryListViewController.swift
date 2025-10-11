@@ -313,12 +313,14 @@ final class CategoryCell: UITableViewCell {
     private func setupUI() {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
-        selectionStyle = .none
+        selectionStyle = .default
+        
         contentView.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -40)
         ])
     }
     

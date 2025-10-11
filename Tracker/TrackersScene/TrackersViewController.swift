@@ -8,6 +8,23 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     private let trackerRecordStore: TrackerRecordStoring
     private var currentDate: Date = Date()
     private var persistentTrackers: [PersistentTracker] = []
+    private var searchText: String = ""
+    private var currentFilter: FilterType?
+    
+    private var hasTrackersForCurrentDay: Bool {
+        let weekday = Weekday.from(date: currentDate)
+        if currentDate > Date() { return false }
+        let persistentCategories: [PersistentCategory]
+        do {
+            persistentCategories = try trackerCategoryStore.fetchCategories()
+        } catch {
+            print("Ошибка получения категорий: \(error)")
+            return false
+        }
+        return persistentCategories.contains { category in
+            category.trackers.contains { $0.schedule.contains(weekday.rawValue) }
+        }
+    }
     
     private var visibleCategories: [TrackerCategory] {
         let weekday = Weekday.from(date: currentDate)
@@ -23,10 +40,28 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         
         persistentTrackers.removeAll()
         
+        let searchLower = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let isSearching = !searchLower.isEmpty
+        
         return persistentCategories.compactMap { persistentCategory -> TrackerCategory? in
-            let filteredTrackers = persistentCategory.trackers.filter { tracker in
+            var filteredTrackers = persistentCategory.trackers.filter { tracker in
                 if isFutureDate { return false }
                 return tracker.schedule.contains(weekday.rawValue)
+            }
+            
+            if isSearching {
+                filteredTrackers = filteredTrackers.filter { $0.name.lowercased().contains(searchLower) }
+            }
+            
+            if let filter = currentFilter {
+                switch filter {
+                case .completed:
+                    filteredTrackers = filteredTrackers.filter { self.makeTrackerViewModel(for: Tracker(id: $0.id, name: $0.name, color: UIColor(named: $0.colorName) ?? .systemGray, emoji: $0.emoji, schedule: $0.schedule.compactMap { Weekday(rawValue: $0) })).isCompletedToday }
+                case .incomplete:
+                    filteredTrackers = filteredTrackers.filter { !self.makeTrackerViewModel(for: Tracker(id: $0.id, name: $0.name, color: UIColor(named: $0.colorName) ?? .systemGray, emoji: $0.emoji, schedule: $0.schedule.compactMap { Weekday(rawValue: $0) })).isCompletedToday }
+                default:
+                    break
+                }
             }
             
             persistentTrackers.append(contentsOf: filteredTrackers)
@@ -89,6 +124,22 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         return label
     }()
     
+    private let noSearchImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "bw_emoji"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private let noSearchLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ничего не найдено"
+        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private let datePicker: UIDatePicker = {
         let dp = UIDatePicker()
         dp.datePickerMode = .date
@@ -96,6 +147,18 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         dp.translatesAutoresizingMaskIntoConstraints = false
         dp.maximumDate = Date()
         return dp
+    }()
+    
+    private lazy var filterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Фильтры", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        button.backgroundColor = UIColor(red: 0.216, green: 0.447, blue: 0.906, alpha: 1)
+        button.layer.cornerRadius = 16
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(filterTapped), for: .touchUpInside)
+        return button
     }()
     
     private lazy var collectionView: UICollectionView = {
@@ -108,6 +171,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         cv.backgroundColor = .clear
         cv.dataSource = self
         cv.delegate = self
+        cv.alwaysBounceVertical = true
         cv.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
         cv.register(SectionHeader.self,
                     forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -144,11 +208,15 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         view.addSubview(datePicker)
         view.addSubview(starImageView)
         view.addSubview(descriptionLabel)
+        view.addSubview(noSearchImageView)
+        view.addSubview(noSearchLabel)
         view.addSubview(collectionView)
+        view.addSubview(filterButton)
         
         setupConstraints()
         plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         updatePlaceholderVisibility()
+        updateFilterButtonAppearance()
     }
     
     // MARK: - Действия
@@ -175,11 +243,68 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         updatePlaceholderVisibility()
     }
     
+    @objc private func filterTapped() {
+        let filtersVC = FiltersViewController(currentFilter: currentFilter)
+        filtersVC.onSelect = { [weak self] filterType in
+            guard let self else { return }
+            switch filterType {
+            case .all:
+                self.currentFilter = nil
+            case .today:
+                self.currentDate = Date()
+                self.datePicker.date = Date()
+                self.currentFilter = nil
+            case .completed:
+                self.currentFilter = .completed
+            case .incomplete:
+                self.currentFilter = .incomplete
+            }
+            self.collectionView.reloadData()
+            self.updatePlaceholderVisibility()
+            self.updateFilterButtonAppearance()
+        }
+        let navController = UINavigationController(rootViewController: filtersVC)
+        present(navController, animated: true)
+    }
+    
     private func updatePlaceholderVisibility() {
         let isEmpty = visibleCategories.isEmpty
-        starImageView.isHidden = !isEmpty
-        descriptionLabel.isHidden = !isEmpty
+        let isSearchingOrFiltering = !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || currentFilter != nil
+        
         collectionView.isHidden = isEmpty
+        
+        if isEmpty {
+            if isSearchingOrFiltering {
+                noSearchImageView.isHidden = false
+                noSearchLabel.isHidden = false
+                starImageView.isHidden = true
+                descriptionLabel.isHidden = true
+            } else {
+                noSearchImageView.isHidden = true
+                noSearchLabel.isHidden = true
+                starImageView.isHidden = false
+                descriptionLabel.isHidden = false
+            }
+        } else {
+            noSearchImageView.isHidden = true
+            noSearchLabel.isHidden = true
+            starImageView.isHidden = true
+            descriptionLabel.isHidden = true
+        }
+        
+        filterButton.isHidden = !hasTrackersForCurrentDay
+        
+        let bottomInset = filterButton.isHidden ? 0 : 66.0 // 50 height + 16 margin
+        collectionView.contentInset.bottom = bottomInset
+        collectionView.scrollIndicatorInsets.bottom = bottomInset
+    }
+    
+    private func updateFilterButtonAppearance() {
+        if currentFilter == nil {
+            filterButton.setTitleColor(.white, for: .normal)
+        } else {
+            filterButton.setTitleColor(.red, for: .normal)
+        }
     }
     
     private func handleTrackerCompletion(trackerId: UUID, shouldComplete: Bool, indexPath: IndexPath) {
@@ -254,8 +379,29 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
             starImageView.heightAnchor.constraint(equalToConstant: 80),
             
             descriptionLabel.topAnchor.constraint(equalTo: starImageView.bottomAnchor, constant: 7),
-            descriptionLabel.centerXAnchor.constraint(equalTo: starImageView.centerXAnchor)
+            descriptionLabel.centerXAnchor.constraint(equalTo: starImageView.centerXAnchor),
+            
+            noSearchImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noSearchImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20),
+            noSearchImageView.widthAnchor.constraint(equalToConstant: 80),
+            noSearchImageView.heightAnchor.constraint(equalToConstant: 80),
+            
+            noSearchLabel.topAnchor.constraint(equalTo: noSearchImageView.bottomAnchor, constant: 8),
+            noSearchLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            noSearchLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+    
+    // MARK: - UISearchBarDelegate
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        self.searchText = searchText
+        collectionView.reloadData()
+        updatePlaceholderVisibility()
     }
 }
 
@@ -363,7 +509,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         
         return UIContextMenuConfiguration(
             identifier: indexPath as NSCopying,
-            previewProvider: nil  // Используем делегат для кастомного превью
+            previewProvider: nil
         ) { _ in
             UIMenu(title: "", children: [
                 UIAction(title: "Редактировать") { [weak self] _ in
@@ -405,10 +551,10 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         }
         
         let parameters = UIPreviewParameters()
-        parameters.backgroundColor = .clear  // Прозрачный фон
+        parameters.backgroundColor = .clear
         parameters.visiblePath = UIBezierPath(
             roundedRect: cell.cardView.bounds,
-            cornerRadius: cell.cardView.layer.cornerRadius  // Закруглённые углы
+            cornerRadius: cell.cardView.layer.cornerRadius
         )
         
         return UITargetedPreview(view: cell.cardView, parameters: parameters)
