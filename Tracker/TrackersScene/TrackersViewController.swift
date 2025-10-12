@@ -2,10 +2,13 @@ import UIKit
 
 final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
-    // MARK: - Хранение данных
+    // MARK: - Зависимости
     private let trackerStore: TrackerStoring
     private let trackerCategoryStore: TrackerCategoryStoring
     private let trackerRecordStore: TrackerRecordStoring
+    private let analyticsService = AnalyticsService()
+    
+    // MARK: - Хранение данных
     private var currentDate: Date = Date()
     private var persistentTrackers: [PersistentTracker] = []
     private var searchText: String = ""
@@ -85,7 +88,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         }
     }
     
-    // MARK: - UI
+    // MARK: - UI элементы
     private let plusButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "plus"), for: .normal)
@@ -179,7 +182,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         return cv
     }()
     
-    // MARK: - Инициализатор (теперь только протоколы)
+    // MARK: - Инициализатор
     init(
         trackerStore: TrackerStoring,
         trackerCategoryStore: TrackerCategoryStoring,
@@ -217,10 +220,18 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         updatePlaceholderVisibility()
         updateFilterButtonAppearance()
+        
+        analyticsService.report(event: "open", params: ["event": "open", "screen": "Main"])
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        analyticsService.report(event: "close", params: ["event": "close", "screen": "Main"])
     }
     
     // MARK: - Действия
     @objc private func plusButtonTapped() {
+        analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "add_track"])
         let habitVC = HabitViewController(trackerCategoryStore: trackerCategoryStore)
         habitVC.onSave = { [weak self] persistentTracker in
             guard let self else { return }
@@ -244,6 +255,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     }
     
     @objc private func filterTapped() {
+        analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "filter"])
         let filtersVC = FiltersViewController(currentFilter: currentFilter)
         filtersVC.onSelect = { [weak self] filterType in
             guard let self else { return }
@@ -293,8 +305,8 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         }
         
         filterButton.isHidden = !hasTrackersForCurrentDay
-        
-        let bottomInset = filterButton.isHidden ? 0 : 66.0 // 50 height + 16 margin
+
+        let bottomInset = filterButton.isHidden ? 0 : 66.0
         collectionView.contentInset.bottom = bottomInset
         collectionView.scrollIndicatorInsets.bottom = bottomInset
     }
@@ -308,6 +320,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     }
     
     private func handleTrackerCompletion(trackerId: UUID, shouldComplete: Bool, indexPath: IndexPath) {
+        analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "track"])
         let record = PersistentRecord(id: UUID(), date: currentDate, trackerId: trackerId)
         
         do {
@@ -330,6 +343,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
             preferredStyle: .actionSheet
         )
         alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "delete"])
             do {
                 try self?.trackerStore.deleteTracker(id)
                 self?.collectionView.reloadData()
@@ -349,7 +363,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         present(alert, animated: true)
     }
     
-    // MARK: - Constraints
+    // MARK: - Ограничения
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             plusButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
@@ -405,7 +419,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     }
 }
 
-// MARK: - CollectionView
+// MARK: - Коллекция
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return visibleCategories.count
@@ -456,7 +470,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             withReuseIdentifier: "header",
             for: indexPath
         ) as? SectionHeader else {
-            assertionFailure("Error")
+            assertionFailure("Ошибка")
             return UICollectionReusableView()
         }
         
@@ -510,9 +524,10 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         return UIContextMenuConfiguration(
             identifier: indexPath as NSCopying,
             previewProvider: nil
-        ) { _ in
+        ) { [weak self] _ in
             UIMenu(title: "", children: [
                 UIAction(title: "Редактировать") { [weak self] _ in
+                    self?.analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "edit"])
                     guard let self else { return }
                     
                     if let persistentTracker = self.persistentTrackers.first(where: { $0.id == tracker.id }) {
@@ -561,7 +576,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
 }
 
-// MARK: - Section Header
+// MARK: - Заголовок секции
 final class SectionHeader: UICollectionReusableView {
     let titleLabel: UILabel = {
         let label = UILabel()
