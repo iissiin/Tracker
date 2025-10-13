@@ -14,8 +14,8 @@ protocol TrackerStoring {
     func addNewTracker(_ tracker: PersistentTracker) throws
     func fetchTrackers() throws -> [PersistentTracker]
     func deleteTracker(_ id: UUID) throws
-    
     func updateTracker(_ tracker: PersistentTracker) throws
+    func fetchAllTrackersCount() throws -> Int
 }
 
 final class TrackerStore: NSObject, TrackerStoring {
@@ -116,6 +116,11 @@ final class TrackerStore: NSObject, TrackerStoring {
         trackerCoreData.category = categoryObject
         
         try context.save()
+    }
+    
+    func fetchAllTrackersCount() throws -> Int {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        return try context.count(for: request)
     }
 
     // MARK: - Private

@@ -331,6 +331,9 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
                 try trackerRecordStore.deleteRecord(id: record.id)
             }
             collectionView.reloadItems(at: [indexPath])
+            
+            let userInfo: [String: Any] = ["trackerId": trackerId, "isCompleted": shouldComplete, "date": currentDate]
+            NotificationCenter.default.post(name: .trackerRecordChanged, object: nil, userInfo: userInfo)
         } catch {
             print("Ошибка при обновлении записи: \(error)")
         }
@@ -481,7 +484,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     private func makeTrackerViewModel(for tracker: Tracker) -> (tracker: Tracker, isCompletedToday: Bool, completionCount: Int) {
         let records: [PersistentRecord]
         do {
-            records = try trackerRecordStore.fetchRecords()
+            records = try trackerRecordStore.fetchAllRecords()
         } catch {
             print("Ошибка загрузки записей: \(error)")
             return (tracker, false, 0)

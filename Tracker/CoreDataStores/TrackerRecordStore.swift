@@ -9,7 +9,7 @@ struct PersistentRecord {
 
 protocol TrackerRecordStoring {
     func addRecord(_ record: PersistentRecord) throws
-    func fetchRecords() throws -> [PersistentRecord]
+    func fetchAllRecords() throws -> [PersistentRecord]
     func deleteRecord(id: UUID) throws
 }
 
@@ -39,7 +39,8 @@ final class TrackerRecordStore: NSObject, TrackerRecordStoring {
         let fetchRequest = NSFetchRequest<TrackerRecordCoreData>(entityName: "TrackerRecordCoreData")
         fetchRequest.entity = entity
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: false)
+            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: false),
+            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)
         ]
         
         print("TrackerRecordStore: fetchRequest = \(fetchRequest), context = \(context)")
@@ -80,7 +81,7 @@ final class TrackerRecordStore: NSObject, TrackerRecordStoring {
         try context.save()
     }
 
-    func fetchRecords() throws -> [PersistentRecord] {
+    func fetchAllRecords() throws -> [PersistentRecord] {
         setupFetchedResultsController()
         guard let fetchedResultsController = fetchedResultsController else {
             print("Ошибка: fetchedResultsController не инициализирован")

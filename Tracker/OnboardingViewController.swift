@@ -236,7 +236,11 @@ class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSo
             trackerRecordStore: trackerRecordStore
         )
         
-        let statisticsVC = StatisticsViewController()
+        let statisticsVC = StatisticsViewController(
+            trackerRecordStore: trackerRecordStore,
+            trackerStore: trackerStore
+        )
+        
         let tabBarController = TabBarController(trackersVC: trackersVC, statisticsVC: statisticsVC)
         
         UIView.transition(with: view.window!, duration: 0.5, options: .transitionCrossDissolve, animations: {
