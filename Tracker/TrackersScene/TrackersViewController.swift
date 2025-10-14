@@ -99,7 +99,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Трекеры"
+        label.text = Localization.trackersTitle
         label.font = UIFont.boldSystemFont(ofSize: 34)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -107,7 +107,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private let searchBar: UISearchBar = {
         let sb = UISearchBar()
-        sb.placeholder = "Поиск"
+        sb.placeholder = Localization.searchPlaceholder
         sb.searchBarStyle = .minimal
         sb.translatesAutoresizingMaskIntoConstraints = false
         return sb
@@ -121,7 +121,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private let descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Что будем отслеживать?"
+        label.text = Localization.emptyStateMessage
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -135,7 +135,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private let noSearchLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ничего не найдено"
+        label.text = Localization.noResultsMessage
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -154,7 +154,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private lazy var filterButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Фильтры", for: .normal)
+        button.setTitle(Localization.filtersButton, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         button.backgroundColor = UIColor(red: 0.216, green: 0.447, blue: 0.906, alpha: 1)
@@ -341,11 +341,11 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private func showDeleteConfirmation(for id: UUID, at indexPath: IndexPath) {
         let alert = UIAlertController(
-            title: "Уверены, что хотите удалить трекер?",
+            title: Localization.deleteTrackerConfirmation,
             message: nil,
             preferredStyle: .actionSheet
         )
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localization.deleteButton, style: .destructive) { [weak self] _ in
             self?.analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "delete"])
             do {
                 try self?.trackerStore.deleteTracker(id)
@@ -354,15 +354,15 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
             } catch {
                 print("Ошибка удаления трекера: \(error)")
                 let errorAlert = UIAlertController(
-                    title: "Ошибка",
-                    message: "Не удалось удалить трекер",
+                    title: NSLocalizedString("error_title", comment: "Error title"),
+                    message: NSLocalizedString("error_delete_tracker", comment: "Error deleting tracker"),
                     preferredStyle: .alert
                 )
-                errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                errorAlert.addAction(UIAlertAction(title: Localization.cancelAction, style: .default))
                 self?.present(errorAlert, animated: true)
             }
         })
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: Localization.cancelAction, style: .cancel))
         present(alert, animated: true)
     }
     
@@ -529,7 +529,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
             previewProvider: nil
         ) { [weak self] _ in
             UIMenu(title: "", children: [
-                UIAction(title: "Редактировать") { [weak self] _ in
+                UIAction(title: Localization.editAction) { [weak self] _ in
                     self?.analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "edit"])
                     guard let self else { return }
                     
@@ -552,7 +552,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
                         self.present(nav, animated: true)
                     }
                 },
-                UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
+                UIAction(title: Localization.deleteAction, attributes: .destructive) { [weak self] _ in
                     self?.showDeleteConfirmation(for: tracker.id, at: indexPath)
                 }
             ])

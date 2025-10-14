@@ -1,0 +1,84 @@
+// Main Screen
+"trackers_title" = "Trackers";
+"search_placeholder" = "Search";
+"filters_button" = "Filters";
+"empty_state_message" = "What will we track?";
+"no_results_message" = "Nothing found";
+
+// Statistics
+"statistics_title" = "Statistics";
+"best_period" = "Best period";
+"perfect_days" = "Perfect days";
+"completed_trackers" = "Trackers completed";
+"average_value" = "Average value";
+"no_stats_message" = "Nothing to analyze yet";
+
+// Categories
+"category_title" = "Category";
+"add_category_button" = "Add category";
+"empty_categories_message" = "Habits and events can\nbe grouped by meaning";
+"new_category" = "New category";
+
+// Schedule
+"schedule_title" = "Schedule";
+"every_day" = "Every day";
+"done_button" = "Done";
+
+// Habit Creation
+"new_habit_title" = "New habit";
+"edit_habit_title" = "Edit habit";
+"tracker_name_placeholder" = "Enter tracker name";
+"category_option" = "Category";
+"schedule_option" = "Schedule";
+"emoji_section" = "Emoji";
+"color_section" = "Color";
+"cancel_button" = "Cancel";
+"create_button" = "Create";
+"save_button" = "Save";
+
+// Filters
+"filters_title" = "Filters";
+"all_trackers" = "All trackers";
+"today_trackers" = "Trackers for today";
+"completed_trackers_filter" = "Completed";
+"incomplete_trackers" = "Incomplete";
+
+//"days_count" = "%d days";
+
+// Weekdays
+"monday" = "Monday";
+"tuesday" = "Tuesday";
+"wednesday" = "Wednesday";
+"thursday" = "Thursday";
+"friday" = "Friday";
+"saturday" = "Saturday";
+"sunday" = "Sunday";
+"monday_short" = "Mon";
+"tuesday_short" = "Tue";
+"wednesday_short" = "Wed";
+"thursday_short" = "Thu";
+"friday_short" = "Fri";
+"saturday_short" = "Sat";
+"sunday_short" = "Sun";
+
+// Context Menu
+"edit_action" = "Edit";
+"delete_action" = "Delete";
+
+// Alerts
+"delete_tracker_confirmation" = "Are you sure you want to delete the tracker?";
+"delete_category_confirmation" = "Are you sure you don't need this category?";
+"delete_button" = "Delete";
+"cancel_action" = "Cancel";
+"error" = "Error";
+"emptyCategoryTitleError" = "A category name cannot be empty";
+"duplicateCategoryError" = "A category with this name already exists";
+
+// Category Edit
+"edit_category_title" = "Edit category";
+"category_name_placeholder" = "Enter category name";
+
+// Onboarding
+"onboarding_title_1" = "Track only what you want";
+"onboarding_title_2" = "Even if it's not liters of water and yoga";
+"onboarding_button" = "That's technology!";

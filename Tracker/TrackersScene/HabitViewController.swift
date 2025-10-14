@@ -33,7 +33,7 @@ final class HabitViewController: UIViewController {
     
     private lazy var titleTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Введите название трекера"
+        tf.placeholder = Localization.trackerNamePlaceholder
         tf.backgroundColor = UIColor(named: "YP_Background[day]")
         tf.layer.cornerRadius = 16
         tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 44))
@@ -64,7 +64,7 @@ final class HabitViewController: UIViewController {
     
     private lazy var emojiLabel: UILabel = {
         let l = UILabel()
-        l.text = "Emoji"
+        l.text = Localization.emojiSection
         l.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
@@ -90,7 +90,7 @@ final class HabitViewController: UIViewController {
     
     private lazy var colorLabel: UILabel = {
         let l = UILabel()
-        l.text = "Цвет"
+        l.text = Localization.colorSection
         l.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
@@ -125,7 +125,7 @@ final class HabitViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Отменить", for: .normal)
+        b.setTitle(Localization.cancelButton, for: .normal)
         b.setTitleColor(.systemRed, for: .normal)
         b.backgroundColor = .systemBackground
         b.layer.cornerRadius = 16
@@ -139,7 +139,7 @@ final class HabitViewController: UIViewController {
     
     private lazy var createButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Создать", for: .normal)
+        b.setTitle(Localization.createButton, for: .normal)
         b.setTitleColor(.white, for: .normal)
         b.backgroundColor = .systemGray
         b.layer.cornerRadius = 16
@@ -170,7 +170,7 @@ final class HabitViewController: UIViewController {
             selectedColorName = tracker.colorName
             selectedCategoryTitle = tracker.categoryTitle
             selectedDays = tracker.schedule.compactMap { Weekday(rawValue: $0) }
-            createButton.setTitle("Сохранить", for: .normal)
+            createButton.setTitle(Localization.saveButton, for: .normal)
             updateCreateButtonState()
         }
         emojiCollectionView.reloadData()
@@ -257,7 +257,7 @@ final class HabitViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        navigationItem.title = editingTracker == nil ? "Новая привычка" : "Редактировать привычку"
+        navigationItem.title = editingTracker == nil ? Localization.newHabitTitle : Localization.editHabitTitle
     }
     
     @objc private func cancelButtonTapped() {
@@ -315,15 +315,15 @@ extension HabitViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
         if indexPath.row == 0 {
-            cell.configure(title: "Категория", value: selectedCategoryTitle)
+            cell.configure(title: Localization.categoryOption, value: selectedCategoryTitle)
         } else {
             let daysText: String?
             if selectedDays.count == Weekday.allCases.count {
-                daysText = "Каждый день"
+                daysText = Localization.everyDay
             } else {
-                daysText = selectedDays.isEmpty ? nil : selectedDays.map { $0.shortSymbol }.joined(separator: ", ")
+                daysText = selectedDays.isEmpty ? nil : selectedDays.map { Localization.weekdayShortName($0) }.joined(separator: ", ")
             }
-            cell.configure(title: "Расписание", value: daysText)
+            cell.configure(title: Localization.scheduleOption, value: daysText)
         }
         return cell
     }

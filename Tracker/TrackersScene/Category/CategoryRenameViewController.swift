@@ -15,7 +15,7 @@ final class CategoryRenameViewModel {
     
     func renameCategory(newTitle: String) {
         guard !newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            onError?(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Название категории не может быть пустым"]))
+            onError?(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: Localization.emptyCategoryTitleError]))
             return
         }
         
@@ -38,7 +38,7 @@ final class CategoryRenameViewController: UIViewController {
     
     private let titleTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = Localization.categoryNamePlaceholder
         textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         textField.backgroundColor = UIColor(named: "YP_Background[day]") ?? .systemGray6
         textField.layer.cornerRadius = 16
@@ -51,7 +51,7 @@ final class CategoryRenameViewController: UIViewController {
     
     private lazy var doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(Localization.doneButton, for: .normal)
         button.backgroundColor = .ypBlackDay
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -79,7 +79,7 @@ final class CategoryRenameViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Редактирование категории"
+        title = Localization.editCategoryTitle
         view.backgroundColor = .systemBackground
         
         navigationItem.hidesBackButton = true
@@ -109,17 +109,17 @@ final class CategoryRenameViewController: UIViewController {
         viewModel.onError = { [weak self] error in
             let message: String
             if error is TrackerCategoryStoreError, error.localizedDescription.contains("duplicateTitle") {
-                message = "Категория с таким названием уже существует"
+                message = Localization.duplicateCategoryError
             } else {
                 message = error.localizedDescription
             }
             
             let alert = UIAlertController(
-                title: "Ошибка",
+                title: NSLocalizedString("error_title", comment: "Error title"),
                 message: message,
                 preferredStyle: .alert
             )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            alert.addAction(UIAlertAction(title: Localization.cancelAction, style: .default))
             self?.present(alert, animated: true)
         }
     }

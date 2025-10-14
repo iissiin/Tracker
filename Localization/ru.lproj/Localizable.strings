@@ -1,0 +1,84 @@
+// Main Screen
+"trackers_title" = "Трекеры";
+"search_placeholder" = "Поиск";
+"filters_button" = "Фильтры";
+"empty_state_message" = "Что будем отслеживать?";
+"no_results_message" = "Ничего не найдено";
+
+// Statistics
+"statistics_title" = "Статистика";
+"best_period" = "Лучший период";
+"perfect_days" = "Идеальные дни";
+"completed_trackers" = "Трекеров завершено";
+"average_value" = "Среднее значение";
+"no_stats_message" = "Анализировать пока нечего";
+
+// Categories
+"category_title" = "Категория";
+"add_category_button" = "Добавить категорию";
+"empty_categories_message" = "Привычки и события можно\nобъединить по смыслу";
+"new_category" = "Новая категория";
+
+// Schedule
+"schedule_title" = "Расписание";
+"every_day" = "Каждый день";
+"done_button" = "Готово";
+
+// Habit Creation
+"new_habit_title" = "Новая привычка";
+"edit_habit_title" = "Редактировать привычку";
+"tracker_name_placeholder" = "Введите название трекера";
+"category_option" = "Категория";
+"schedule_option" = "Расписание";
+"emoji_section" = "Emoji";
+"color_section" = "Цвет";
+"cancel_button" = "Отменить";
+"create_button" = "Создать";
+"save_button" = "Сохранить";
+
+// Filters
+"filters_title" = "Фильтры";
+"all_trackers" = "Все трекеры";
+"today_trackers" = "Трекеры на сегодня";
+"completed_trackers_filter" = "Завершённые";
+"incomplete_trackers" = "Незавершённые";
+
+//"days_count" = "%d дней";
+
+// Weekdays
+"monday" = "Понедельник";
+"tuesday" = "Вторник";
+"wednesday" = "Среда";
+"thursday" = "Четверг";
+"friday" = "Пятница";
+"saturday" = "Суббота";
+"sunday" = "Воскресенье";
+"monday_short" = "Пн";
+"tuesday_short" = "Вт";
+"wednesday_short" = "Ср";
+"thursday_short" = "Чт";
+"friday_short" = "Пт";
+"saturday_short" = "Сб";
+"sunday_short" = "Вс";
+
+// Context Menu
+"edit_action" = "Редактировать";
+"delete_action" = "Удалить";
+
+// Alerts
+"delete_tracker_confirmation" = "Уверены, что хотите удалить трекер?";
+"delete_category_confirmation" = "Эта категория точно не нужна?";
+"delete_button" = "Удалить";
+"cancel_action" = "Отмена";
+"error" = "Ошибка";
+"emptyCategoryTitleError" = "Название категории не может быть пустым";
+"duplicateCategoryError" = "Категория с таким названием уже существует";
+
+// Category Edit
+"edit_category_title" = "Редактирование категории";
+"category_name_placeholder" = "Введите название категории";
+
+// Onboarding
+"onboarding_title_1" = "Отслеживайте только то, что хотите";
+"onboarding_title_2" = "Даже если это не литры воды и йога";
+"onboarding_button" = "Вот это технологии!";

@@ -1,10 +1,15 @@
+import Foundation
 import UIKit
 
 enum FilterType: String {
-    case all = "Все трекеры"
-    case today = "Трекеры на сегодня"
-    case completed = "Завершённые"
-    case incomplete = "Незавершённые"
+    case all = "all_trackers"
+    case today = "today_trackers"
+    case completed = "completed_trackers_filter"
+    case incomplete = "incomplete_trackers"
+    
+    var localizedTitle: String {
+        return NSLocalizedString(self.rawValue, comment: "Filter type title")
+    }
 }
 
 final class FiltersViewController: UIViewController {
@@ -52,7 +57,7 @@ final class FiltersViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Фильтры"
+        title = Localization.filtersTitle
         view.backgroundColor = .systemBackground
         navigationItem.hidesBackButton = true
         
@@ -92,7 +97,7 @@ extension FiltersViewController: UITableViewDataSource {
         
         let filter = filters[indexPath.row]
         let isSelected = filter == currentFilter && (filter == .completed || filter == .incomplete)
-        cell.configure(title: filter.rawValue, isSelected: isSelected)
+        cell.configure(title: filter.localizedTitle, isSelected: isSelected)
         
         return cell
     }

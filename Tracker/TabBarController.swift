@@ -9,13 +9,13 @@ final class TabBarController: UITabBarController {
         super.init(nibName: nil, bundle: nil)
         
         trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: Localization.trackersTitle,
             image: UIImage(systemName: "record.circle"),
             tag: 0
         )
         
         statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: Localization.statisticsTitle,
             image: UIImage(systemName: "hare.fill"),
             tag: 1
         )

@@ -1,4 +1,5 @@
 import UIKit
+import Foundation
 
 // MARK: - ViewModel
 final class CategoryListViewModel {
@@ -84,12 +85,11 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
     
     private let descriptionLabel: UILabel = {
         let label = UILabel()
-        let text = "Привычки и события можно\nобъединить по смыслу"
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 2
         paragraphStyle.alignment = .center
         let attributedText = NSAttributedString(
-            string: text,
+            string: Localization.emptyCategoriesMessage,
             attributes: [
                 .font: UIFont.systemFont(ofSize: 12, weight: .medium),
                 .paragraphStyle: paragraphStyle
@@ -105,7 +105,7 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
     
     private lazy var addCategoryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
+        button.setTitle(Localization.addCategoryButton, for: .normal)
         button.backgroundColor = .ypBlackDay
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -136,7 +136,7 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
     }
     
     private func setupUI() {
-        title = "Категория"
+        title = Localization.categoryTitle
         view.backgroundColor = .systemBackground
         navigationItem.hidesBackButton = true
         
@@ -250,7 +250,7 @@ extension CategoryListViewController: UITableViewDelegate {
         let category = viewModel.category(at: indexPath.row)
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             UIMenu(title: "", children: [
-                UIAction(title: "Редактировать") { [weak self] _ in
+                UIAction(title: Localization.editAction) { [weak self] _ in
                     guard let self = self else { return }
                     let renameVC = CategoryRenameViewController(categoryStore: self.viewModel.categoryStoreAccessor, categoryTitle: category.title)
                     renameVC.onCategoryRenamed = { [weak self] in
@@ -258,7 +258,7 @@ extension CategoryListViewController: UITableViewDelegate {
                     }
                     self.navigationController?.pushViewController(renameVC, animated: true)
                 },
-                UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
+                UIAction(title: Localization.deleteAction, attributes: .destructive) { [weak self] _ in
                     self?.showDeleteConfirmation(for: category.title)
                 }
             ])
@@ -267,25 +267,25 @@ extension CategoryListViewController: UITableViewDelegate {
     
     private func showDeleteConfirmation(for categoryTitle: String) {
         let alert = UIAlertController(
-            title: "Эта категория точно не нужна?",
+            title: Localization.deleteCategoryConfirmation,
             message: nil,
             preferredStyle: .actionSheet
         )
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localization.deleteButton, style: .destructive) { [weak self] _ in
             do {
                 try self?.viewModel.categoryStoreAccessor.deleteCategory(title: categoryTitle)
             } catch {
                 print("Ошибка удаления категории: \(error)")
                 let errorAlert = UIAlertController(
-                    title: "Ошибка",
-                    message: "Не удалось удалить категорию",
+                    title: NSLocalizedString("error_title", comment: "Error title"),
+                    message: NSLocalizedString("error_delete_category", comment: "Error deleting category"),
                     preferredStyle: .alert
                 )
-                errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                errorAlert.addAction(UIAlertAction(title: Localization.cancelAction, style: .default))
                 self?.present(errorAlert, animated: true)
             }
         })
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: Localization.cancelAction, style: .cancel))
         present(alert, animated: true)
     }
 }

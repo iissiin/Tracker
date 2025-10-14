@@ -1,3 +1,4 @@
+import Foundation
 import UIKit
 
 final class TrackerCell: UICollectionViewCell {
@@ -138,7 +139,7 @@ final class TrackerCell: UICollectionViewCell {
         nameLabel.text = tracker.name
         cardView.backgroundColor = tracker.color
         emojiLabel.text = tracker.emoji
-        counterLabel.text = "\(completionCount) дней"
+        counterLabel.text = String.localizedStringWithFormat(NSLocalizedString("daysCount", comment: "Days count format"), completionCount)
         
         updateButtonAppearance()
     }
@@ -147,7 +148,7 @@ final class TrackerCell: UICollectionViewCell {
         if isCompletedToday {
             plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
             plusButton.tintColor = .white
-            plusButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(0.5) 
+            plusButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(0.5)
         } else {
             plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
             plusButton.tintColor = .white

@@ -6,7 +6,7 @@ final class StatisticsViewController: UIViewController {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Статистика"
+        label.text = Localization.statisticsTitle
         label.font = UIFont.boldSystemFont(ofSize: 34)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -29,7 +29,7 @@ final class StatisticsViewController: UIViewController {
 
     private let noStatsLabel: UILabel = {
         let label = UILabel()
-        label.text = "Анализировать пока нечего"
+        label.text = Localization.noStatsMessage
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -137,9 +137,9 @@ final class StatisticsViewController: UIViewController {
             }
 
             if recordsForDay.count == totalTrackers && !isCompleted {
-                newStats.idealDays -= 1 // Уменьшаем, если убрали завершение
+                newStats.idealDays -= 1
             } else if (recordsForDay.count + (isCompleted ? 1 : 0)) == totalTrackers {
-                newStats.idealDays += 1 // Увеличиваем, если добавили и стал идеальным
+                newStats.idealDays += 1
             }
 
             let uniqueDays = Set(records.map { calendar.startOfDay(for: $0.date) }).count
@@ -166,10 +166,10 @@ extension StatisticsViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "StatsCell", for: indexPath) as! StatisticsCell
         guard let stats = stats else { return cell }
         switch indexPath.section {
-        case 0: cell.configure(number: stats.bestPeriod, description: "Лучший период")
-        case 1: cell.configure(number: stats.idealDays, description: "Идеальные дни")
-        case 2: cell.configure(number: stats.completedTrackers, description: "Трекеров завершено")
-        case 3: cell.configure(number: stats.averagePerDay, description: "Среднее значение")
+        case 0: cell.configure(number: stats.bestPeriod, description: Localization.bestPeriod)
+        case 1: cell.configure(number: stats.idealDays, description: Localization.perfectDays)
+        case 2: cell.configure(number: stats.completedTrackers, description: Localization.completedTrackers)
+        case 3: cell.configure(number: stats.averagePerDay, description: Localization.averageValue)
         default: break
         }
         return cell
