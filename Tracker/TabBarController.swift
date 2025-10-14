@@ -21,7 +21,6 @@ final class TabBarController: UITabBarController {
         )
         
         viewControllers = [trackersVC, statisticsVC]
-        
         setupTabBarAppearance()
     }
     
@@ -33,8 +32,13 @@ final class TabBarController: UITabBarController {
     private func setupTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(named: "YP_White")
+        
+        appearance.backgroundColor = AppColors.tabBarBackground
         appearance.shadowColor = UIColor.separator
+        
+        tabBar.tintColor = .systemBlue
+        tabBar.unselectedItemTintColor = .gray
+        
         tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance

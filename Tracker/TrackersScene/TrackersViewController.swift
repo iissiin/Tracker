@@ -92,8 +92,8 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     private let plusButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "plus"), for: .normal)
-        button.tintColor = .black
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .clear // ✅ Прозрачный фон
         return button
     }()
     
@@ -201,7 +201,12 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     // MARK: - Жизненный цикл
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = AppColors.background
+        
+        setupUIColors()
+        setupSearchBar()
+        setupDatePicker()
+        
         searchBar.delegate = self
         datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
         
@@ -228,6 +233,41 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         super.viewDidDisappear(animated)
         analyticsService.report(event: "close", params: ["event": "close", "screen": "Main"])
     }
+    
+    private func setupUIColors() {
+        titleLabel.textColor = AppColors.labelPrimary
+        plusButton.tintColor = AppColors.buttonPlus
+        descriptionLabel.textColor = AppColors.labelSecondary
+        noSearchLabel.textColor = AppColors.labelSecondary
+    }
+    
+    private func setupSearchBar() {
+        searchBar.backgroundImage = UIImage() // Убираем фон
+        searchBar.backgroundColor = .clear
+        
+        if let searchTextField = searchBar.value(forKey: "searchField") as? UITextField {
+            searchTextField.backgroundColor = AppColors.searchBarBackground
+            searchTextField.textColor = AppColors.labelPrimary
+            searchTextField.tintColor = AppColors.buttonPlus
+            
+            let placeholderText = Localization.searchPlaceholder
+            searchTextField.attributedPlaceholder = NSAttributedString(
+                string: placeholderText,
+                attributes: [.foregroundColor: AppColors.labelSecondary]
+            )
+        }
+    }
+    
+    private func setupDatePicker() {
+        datePicker.overrideUserInterfaceStyle = .light 
+        datePicker.backgroundColor = AppColors.datePickerBackground
+        
+        datePicker.setValue(AppColors.datePickerText, forKeyPath: "textColor")
+        
+        datePicker.layer.cornerRadius = 8
+        datePicker.layer.masksToBounds = true
+    }
+
     
     // MARK: - Действия
     @objc private func plusButtonTapped() {
@@ -285,6 +325,9 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         
         collectionView.isHidden = isEmpty
         
+        descriptionLabel.textColor = AppColors.labelSecondary
+        noSearchLabel.textColor = AppColors.labelSecondary
+        
         if isEmpty {
             if isSearchingOrFiltering {
                 noSearchImageView.isHidden = false
@@ -305,7 +348,6 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         }
         
         filterButton.isHidden = !hasTrackersForCurrentDay
-
         let bottomInset = filterButton.isHidden ? 0 : 66.0
         collectionView.contentInset.bottom = bottomInset
         collectionView.scrollIndicatorInsets.bottom = bottomInset
@@ -584,17 +626,18 @@ final class SectionHeader: UICollectionReusableView {
     let titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 19)
-        label.textColor = UIColor(named: "ypBlackDay") ?? .black
+        label.textColor = AppColors.sectionHeaderText
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        backgroundColor = AppColors.background
         addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
@@ -603,5 +646,11 @@ final class SectionHeader: UICollectionReusableView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        titleLabel.textColor = AppColors.sectionHeaderText
+        backgroundColor = AppColors.background
     }
 }

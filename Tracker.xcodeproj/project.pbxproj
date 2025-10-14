@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		776167252E9ED6CD002A3A79 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776167242E9ED6CD002A3A79 /* Colors.swift */; };
 		777320552E9C2EA600BC3A6B /* AppMetricaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 777320542E9C2EA600BC3A6B /* AppMetricaCore */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		776167242E9ED6CD002A3A79 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		77A710FB2E50C66B00755977 /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77A711112E50C66E00755977 /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		77A7111B2E50C66E00755977 /* TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,6 +107,7 @@
 		77A710F22E50C66B00755977 = {
 			isa = PBXGroup;
 			children = (
+				776167242E9ED6CD002A3A79 /* Colors.swift */,
 				7773207D2E9E989A00BC3A6B /* Localization */,
 				77A710FD2E50C66B00755977 /* Tracker */,
 				77A711142E50C66E00755977 /* TrackerTests */,
@@ -274,6 +277,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				776167252E9ED6CD002A3A79 /* Colors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
