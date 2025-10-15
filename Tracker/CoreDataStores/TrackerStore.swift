@@ -14,6 +14,8 @@ protocol TrackerStoring {
     func addNewTracker(_ tracker: PersistentTracker) throws
     func fetchTrackers() throws -> [PersistentTracker]
     func deleteTracker(_ id: UUID) throws
+    func updateTracker(_ tracker: PersistentTracker) throws
+    func fetchAllTrackersCount() throws -> Int
 }
 
 final class TrackerStore: NSObject, TrackerStoring {
@@ -28,38 +30,17 @@ final class TrackerStore: NSObject, TrackerStoring {
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
-        print("TrackerStore: Инициализирован с context = \(context)")
     }
 
     // MARK: - Setup
     private func setupFetchedResultsController() {
-        guard fetchedResultsController == nil else {
-            print("TrackerStore: fetchedResultsController уже инициализирован")
-            return
-        }
-        
-        // Проверяем, валиден ли context
-        guard context.persistentStoreCoordinator != nil else {
-            print("TrackerStore: Ошибка: context.persistentStoreCoordinator is nil")
-            return
-        }
-        
-        // Проверяем доступные сущности
-        let entities = context.persistentStoreCoordinator?.managedObjectModel.entities.map { $0.name ?? "Unknown" }
-        print("TrackerStore: Доступные сущности в модели данных: \(entities ?? [])")
-        
-        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCoreData", in: context) else {
-            print("TrackerStore: Ошибка: Не найдена сущность TrackerCoreData")
-            return
-        }
+        guard fetchedResultsController == nil else { return }
+        guard context.persistentStoreCoordinator != nil else { return }
+        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCoreData", in: context) else { return }
         
         let fetchRequest = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
         fetchRequest.entity = entity
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerCoreData.name, ascending: true)
-        ]
-        
-        print("TrackerStore: fetchRequest = \(fetchRequest), context = \(context)")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerCoreData.name, ascending: true)]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -73,43 +54,35 @@ final class TrackerStore: NSObject, TrackerStoring {
     // MARK: - Public
     var trackers: [PersistentTracker] {
         setupFetchedResultsController()
-        guard let fetchedResultsController = fetchedResultsController else {
-            print("TrackerStore: Ошибка: fetchedResultsController не инициализирован")
-            return []
-        }
+        guard let fetchedResultsController = fetchedResultsController else { return [] }
         do {
             try fetchedResultsController.performFetch()
             return fetchedResultsController.fetchedObjects?.compactMap { self.tracker(from: $0) } ?? []
         } catch {
-            print("TrackerStore: Ошибка при выполнении запроса трекеров: \(error)")
+            print("Ошибка получения трекеров: \(error)")
             return []
         }
     }
 
     func addNewTracker(_ tracker: PersistentTracker) throws {
+        guard !tracker.categoryTitle.isEmpty else {
+            throw TrackerStoreError.decodingError
+        }
+        
+        guard let categoryObject = try fetchCategory(by: tracker.categoryTitle) else {
+            throw TrackerStoreError.decodingError
+        }
+        
         let trackerCoreData = TrackerCoreData(context: context)
         updateExistingTracker(trackerCoreData, with: tracker)
+        trackerCoreData.category = categoryObject
         
-        // Проверяем, существует ли указанная категория, если нет — используем "Default"
-        let categoryTitle = tracker.categoryTitle.isEmpty ? "Default" : tracker.categoryTitle
-        if let categoryObject = try fetchCategory(by: categoryTitle) {
-            trackerCoreData.category = categoryObject
-        } else {
-            let newCategory = TrackerCategoryCoreData(context: context)
-            newCategory.title = categoryTitle
-            trackerCoreData.category = newCategory
-            print("TrackerStore: Создана новая категория \(categoryTitle) для трекера")
-        }
         try context.save()
-        print("TrackerStore: Трекер \(tracker.name) добавлен в категорию \(categoryTitle)")
     }
 
     func fetchTrackers() throws -> [PersistentTracker] {
         setupFetchedResultsController()
-        guard let fetchedResultsController = fetchedResultsController else {
-            print("TrackerStore: Ошибка: fetchedResultsController не инициализирован")
-            return []
-        }
+        guard let fetchedResultsController = fetchedResultsController else { return [] }
         try fetchedResultsController.performFetch()
         return fetchedResultsController.fetchedObjects?.compactMap { self.tracker(from: $0) } ?? []
     }
@@ -120,8 +93,34 @@ final class TrackerStore: NSObject, TrackerStoring {
         if let object = try context.fetch(request).first {
             context.delete(object)
             try context.save()
-            print("TrackerStore: Трекер с id \(id) удален")
         }
+    }
+    
+    func updateTracker(_ tracker: PersistentTracker) throws {
+        guard !tracker.categoryTitle.isEmpty else {
+            throw TrackerStoreError.decodingError
+        }
+        
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        guard let trackerCoreData = try context.fetch(request).first else {
+            throw TrackerStoreError.fetchError
+        }
+        
+        guard let categoryObject = try fetchCategory(by: tracker.categoryTitle) else {
+            throw TrackerStoreError.decodingError
+        }
+        
+        updateExistingTracker(trackerCoreData, with: tracker)
+        trackerCoreData.category = categoryObject
+        
+        try context.save()
+    }
+    
+    func fetchAllTrackersCount() throws -> Int {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        return try context.count(for: request)
     }
 
     // MARK: - Private
@@ -137,9 +136,10 @@ final class TrackerStore: NSObject, TrackerStoring {
             let id = coreData.id,
             let name = coreData.name,
             let colorName = coreData.colorName,
-            let emoji = coreData.emoji
+            let emoji = coreData.emoji,
+            let categoryTitle = coreData.category?.title
         else {
-            print("TrackerStore: Ошибка: Неверные данные трекера")
+            print("Ошибка: Неверные данные трекера")
             return nil
         }
 
@@ -151,9 +151,6 @@ final class TrackerStore: NSObject, TrackerStoring {
         } else {
             schedule = []
         }
-
-        // потом нормально сдлетаь категории
-        let categoryTitle = coreData.category?.title ?? "Default"
 
         return PersistentTracker(
             id: id,

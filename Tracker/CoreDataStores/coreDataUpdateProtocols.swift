@@ -22,10 +22,6 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 // MARK: - TrackerCategoryStore
-enum TrackerCategoryStoreError: Error {
-    case fetchError
-    case decodingError
-}
 
 struct TrackerCategoryStoreUpdate {
     struct Move: Hashable {

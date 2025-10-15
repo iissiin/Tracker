@@ -34,7 +34,7 @@ final class ScheduleViewController: UIViewController {
 
     private lazy var doneButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setTitle("Готово", for: .normal)
+        btn.setTitle(Localization.doneButton, for: .normal)
         btn.backgroundColor = .ypBlackDay
         btn.setTitleColor(.white, for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -53,7 +53,7 @@ final class ScheduleViewController: UIViewController {
 
     // MARK: - Setup
     private func setupUI() {
-        title = "Расписание"
+        title = Localization.scheduleTitle
         view.backgroundColor = .systemBackground
 
         view.addSubview(cardView)
