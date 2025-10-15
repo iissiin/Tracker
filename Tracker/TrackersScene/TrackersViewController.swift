@@ -93,7 +93,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .clear // ✅ Прозрачный фон
+        button.backgroundColor = .clear
         return button
     }()
     
@@ -242,7 +242,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     }
     
     private func setupSearchBar() {
-        searchBar.backgroundImage = UIImage() // Убираем фон
+        searchBar.backgroundImage = UIImage()
         searchBar.backgroundColor = .clear
         
         if let searchTextField = searchBar.value(forKey: "searchField") as? UITextField {
@@ -259,7 +259,7 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     }
     
     private func setupDatePicker() {
-        datePicker.overrideUserInterfaceStyle = .light 
+        datePicker.overrideUserInterfaceStyle = .light
         datePicker.backgroundColor = AppColors.datePickerBackground
         
         datePicker.setValue(AppColors.datePickerText, forKeyPath: "textColor")
@@ -363,15 +363,33 @@ final class TrackersViewController: UIViewController, UISearchBarDelegate {
     
     private func handleTrackerCompletion(trackerId: UUID, shouldComplete: Bool, indexPath: IndexPath) {
         analyticsService.report(event: "click", params: ["event": "click", "screen": "Main", "item": "track"])
-        let record = PersistentRecord(id: UUID(), date: currentDate, trackerId: trackerId)
+        
+        // Проверяем, что дата не в будущем
+        if currentDate > Date() { return }
         
         do {
-            if shouldComplete {
-                if currentDate > Date() { return }
-                try trackerRecordStore.addRecord(record)
-            } else {
-                try trackerRecordStore.deleteRecord(id: record.id)
+            // Получаем все записи для текущего трекера и даты
+            let allRecords = try trackerRecordStore.fetchAllRecords()
+            let existingRecord = allRecords.first { record in
+                record.trackerId == trackerId && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
             }
+            
+            if shouldComplete {
+                // Если записи еще нет, создаем новую
+                if existingRecord == nil {
+                    let newRecord = PersistentRecord(id: UUID(), date: currentDate, trackerId: trackerId)
+                    try trackerRecordStore.addRecord(newRecord)
+                    print("Запись добавлена: trackerId=\(trackerId), date=\(currentDate)")
+                }
+            } else {
+                // Если запись есть, удаляем её
+                if let recordToDelete = existingRecord {
+                    try trackerRecordStore.deleteRecord(id: recordToDelete.id)
+                    print("Запись удалена: id=\(recordToDelete.id), trackerId=\(trackerId), date=\(currentDate)")
+                }
+            }
+            
+            // Обновляем только эту ячейку
             collectionView.reloadItems(at: [indexPath])
             
             let userInfo: [String: Any] = ["trackerId": trackerId, "isCompleted": shouldComplete, "date": currentDate]

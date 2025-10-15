@@ -54,6 +54,9 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
     
     private let viewModel: CategoryListViewModel
     
+    // Сохраняем constraint для высоты, чтобы обновлять его
+    private var cardViewHeightConstraint: NSLayoutConstraint?
+    
     private let cardView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(named: "YP_Background[day]") ?? .systemGray6
@@ -135,6 +138,12 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
         viewModel.onPlaceholderVisibilityChanged?(viewModel.numberOfCategories() == 0)
     }
     
+    // Обновляем данные каждый раз при появлении экрана
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.fetchCategories()
+    }
+    
     private func setupUI() {
         title = Localization.categoryTitle
         view.backgroundColor = .systemBackground
@@ -145,6 +154,11 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
         view.addSubview(starImageView)
         view.addSubview(descriptionLabel)
         view.addSubview(addCategoryButton)
+        
+        // Создаем constraint для высоты один раз и сохраняем его
+        let heightConstraint = cardView.heightAnchor.constraint(equalToConstant: 0)
+        heightConstraint.isActive = true
+        cardViewHeightConstraint = heightConstraint
         
         updateTableHeight()
         
@@ -190,16 +204,22 @@ final class CategoryListViewController: UIViewController, TrackerCategoryStoreDe
     
     private func updateTableHeight() {
         let tableHeight = CGFloat(viewModel.numberOfCategories()) * 75
-        cardView.heightAnchor.constraint(equalToConstant: tableHeight).isActive = true
+        // Обновляем существующий constraint вместо создания нового
+        cardViewHeightConstraint?.constant = tableHeight
     }
     
     @objc private func addCategoryTapped() {
         let editViewController = CategoryEditViewController(categoryStore: viewModel.categoryStoreAccessor)
+        editViewController.onCategoryAdded = { [weak self] in
+            print("Категория добавлена, обновляем список")
+            self?.viewModel.fetchCategories()
+        }
         navigationController?.pushViewController(editViewController, animated: true)
     }
     
     // MARK: - TrackerCategoryStoreDelegate
     func store(_ store: TrackerCategoryStore, didUpdate update: TrackerCategoryStoreUpdate) {
+        print("Получено обновление от store")
         viewModel.fetchCategories()
     }
 }

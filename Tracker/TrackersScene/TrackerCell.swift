@@ -44,12 +44,11 @@ final class TrackerCell: UICollectionViewCell {
     }()
     
     private let counterLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .white // ✅ Белый цвет для темной темы
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+            let label = UILabel()
+            label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            return label
+        }()
     
     private lazy var plusButton: UIButton = {
         let button = UIButton(type: .system)
@@ -134,20 +133,20 @@ final class TrackerCell: UICollectionViewCell {
     private func updateDynamicColors() {
         updateEmojiBackgroundColor()
         updateBottomViewAppearance()
-        counterLabel.textColor = .white
+        counterLabel.textColor = AppColors.labelPrimary
     }
     
     private func updateEmojiBackgroundColor() {
         let isDarkMode = traitCollection.userInterfaceStyle == .dark
         emojiBackground.backgroundColor = isDarkMode ?
-            UIColor.white.withAlphaComponent(0.2) :
-            UIColor.white.withAlphaComponent(0.3)
+        UIColor.white.withAlphaComponent(0.2) :
+        UIColor.white.withAlphaComponent(0.3)
     }
     
     private func updateBottomViewAppearance() {
         let isDarkMode = traitCollection.userInterfaceStyle == .dark
         bottomView.backgroundColor = isDarkMode ?
-            AppColors.background.withAlphaComponent(0.8) :
+        AppColors.background.withAlphaComponent(0.8) :
             .clear
     }
     

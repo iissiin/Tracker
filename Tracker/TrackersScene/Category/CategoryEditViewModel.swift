@@ -18,6 +18,7 @@ final class CategoryEditViewModel {
         
         do {
             try categoryStore.addNewCategory(title: title)
+            print("Категория '\(title)' успешно добавлена в store")
             onCategoryAdded?()
         } catch TrackerCategoryStoreError.duplicateTitle {
             onError?(TrackerCategoryStoreError.duplicateTitle)
@@ -97,7 +98,10 @@ final class CategoryEditViewController: UIViewController {
     
     private func setupBindings() {
         viewModel.onCategoryAdded = { [weak self] in
+            print("Категория добавлена, вызываем callback и закрываем экран")
+            // Сначала вызываем callback для обновления предыдущего экрана
             self?.onCategoryAdded?()
+            // Затем закрываем текущий экран
             self?.navigationController?.popViewController(animated: true)
         }
         
